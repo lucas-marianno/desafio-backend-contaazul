@@ -24,6 +24,7 @@ class TestBankSlipControler {
   @Autowired
   RestTestClient restTestClient;
 
+  // Criar boleto
   @Test
   void postBankSlipWithoutBodyShouldReturn400() {
     restTestClient.post()
@@ -77,4 +78,10 @@ class TestBankSlipControler {
         .jsonPath("$.status").isEqualTo(BankSlip.Status.PENDING.toString())
         .jsonPath("$.id").isNotEmpty();
   }
+
+  // Lista de boletos
+  // Ver detalhes de um boleto
+  // Pagar um boleto
+  // Cancelar um boleto
+
 }
