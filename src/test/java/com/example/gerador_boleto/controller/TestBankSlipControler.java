@@ -1,7 +1,11 @@
 package com.example.gerador_boleto.controller;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,7 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 
 import com.example.gerador_boleto.dto.BankSlipRequest;
 import com.example.gerador_boleto.model.BankSlip;
+import com.example.gerador_boleto.repository.BankSlipRepository;
 
 @SpringBootTest
 @AutoConfigureRestTestClient
@@ -23,6 +28,9 @@ class TestBankSlipControler {
 
   @Autowired
   RestTestClient restTestClient;
+
+  @Autowired
+  BankSlipRepository repository;
 
   // Criar boleto
   @Test
@@ -66,6 +74,8 @@ class TestBankSlipControler {
     final var customer = "My Company";
     final var bs = new BankSlipRequest(dueDate, totalInCents, customer);
 
+    final var expectedStatus = BankSlip.Status.PENDING;
+
     restTestClient.post()
         .uri("/rest/bankslips")
         .body(bs)
@@ -75,8 +85,20 @@ class TestBankSlipControler {
         .jsonPath("$.total_in_cents").isEqualTo(totalInCents)
         .jsonPath("$.due_date").isEqualTo(dueDate.toString())
         .jsonPath("$.customer").isEqualTo(customer)
-        .jsonPath("$.status").isEqualTo(BankSlip.Status.PENDING.toString())
-        .jsonPath("$.id").isNotEmpty();
+        .jsonPath("$.status").isEqualTo(expectedStatus.toString())
+        .jsonPath("$.id").value(id -> {
+          assertDoesNotThrow(() -> UUID.fromString(id.toString()));
+        });
+
+    // check if the new bankslip was correctly created on database
+    final var allSlips = repository.findAll();
+    assertThat(allSlips).hasSize(1);
+    final var dbbs = allSlips.get(0);
+    assertThat(dbbs.getTotalInCents()).isEqualTo(totalInCents);
+    assertThat(dbbs.getDueDate()).isEqualTo(dueDate);
+    assertThat(dbbs.getCustomer()).isEqualTo(customer);
+    assertThat(dbbs.getStatus()).isEqualTo(expectedStatus);
+    assertThat(dbbs.getId()).isInstanceOf(UUID.class).isNotNull();
   }
 
   // Lista de boletos
