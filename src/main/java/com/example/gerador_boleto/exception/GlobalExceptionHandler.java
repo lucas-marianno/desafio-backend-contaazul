@@ -9,6 +9,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.example.gerador_boleto.exception.exceptions.BankSlipNotFoundException;
 import com.example.gerador_boleto.exception.exceptions.InvalidBankslipException;
 import com.example.gerador_boleto.exception.exceptions.MissingParameterException;
 import com.example.gerador_boleto.exception.exceptions.NotImplementedException;
@@ -24,6 +25,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidBankslipException.class)
   ProblemDetail handleInvalidBankslipt(final InvalidBankslipException e) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getMessage());
+  }
+
+  @ExceptionHandler(BankSlipNotFoundException.class)
+  ProblemDetail handleBankSlipNotFound(final BankSlipNotFoundException e){
+    return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   // spring exceptions

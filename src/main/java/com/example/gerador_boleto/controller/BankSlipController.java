@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,8 +29,13 @@ public class BankSlipController {
   }
 
   @GetMapping("/bankslips")
-  ResponseEntity<List<BankSlip>> getAllBankSlip(){
-    return ResponseEntity
-            .ok(service.findAll());
+  ResponseEntity<List<BankSlip>> getAllBankSlip() {
+    return ResponseEntity .ok(service.findAll());
   }
+
+  @GetMapping("/bankslips/{id}")
+  ResponseEntity<BankSlip> getById(@PathVariable UUID id) {
+    return ResponseEntity .ok(service.findById(id));
+  }
+
 }

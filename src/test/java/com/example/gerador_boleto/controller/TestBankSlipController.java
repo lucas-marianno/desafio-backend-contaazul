@@ -1,6 +1,6 @@
 package com.example.gerador_boleto.controller;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.math.BigInteger;
@@ -49,7 +49,7 @@ class TestBankSlipController {
 
   @ParameterizedTest
   @MethodSource("provideInvalidRequests")
-  void postInvalidBankSlipShouldReturn422(BankSlipRequest invalidRequest) {
+  void postInvalidBankSlipShouldReturn422(final BankSlipRequest invalidRequest) {
     restTestClient.post()
         .uri("/rest/bankslips")
         .body(invalidRequest)
@@ -157,7 +157,37 @@ class TestBankSlipController {
 
     assertThat(uuidA != uuidB).isTrue();
   }
+
   // Ver detalhes de um boleto
+  @Test
+  void getBankSlipByIdShouldReturn404() {
+    final var rndUuid = UUID.randomUUID();
+    restTestClient.get()
+        .uri("/rest/bankslips/" + rndUuid)
+        .exchange()
+        .expectStatus().isEqualTo(HttpStatus.NOT_FOUND);
+  }
+
+  @Test
+  void getBankSlipByIdShouldReturnBankSlip() {
+    final var totalInCents = new BigInteger("1234567890");
+    final var dueDate = LocalDate.now().plusDays(1);
+    final var customer = "My Company";
+    final var status = BankSlip.Status.PENDING;
+    final var bs = new BankSlip(null, dueDate, totalInCents, customer + "_A", status);
+
+    final var savedBankSlip = repository.save(bs);
+
+    restTestClient.get()
+        .uri("/rest/bankslips/" + savedBankSlip.getId())
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(BankSlip.class)
+        .value(returnedBs -> {
+          assertThat(returnedBs).usingRecursiveComparison().isEqualTo(savedBankSlip);
+        });
+  }
+
   // Pagar um boleto
   // Cancelar um boleto
 
