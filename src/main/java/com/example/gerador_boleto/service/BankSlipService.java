@@ -8,6 +8,8 @@ import com.example.gerador_boleto.repository.BankSlipRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class BankSlipService {
@@ -17,6 +19,10 @@ public class BankSlipService {
   public BankSlip createBankSlip(BankSlipRequest request) {
     BankSlip bankSlip = request.toEntity();
     return repository.save(bankSlip);
+  }
+
+  public List<BankSlip> findAll() {
+    return repository.findAll();
   }
 
 }
