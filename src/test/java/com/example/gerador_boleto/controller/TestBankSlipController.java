@@ -1,10 +1,12 @@
 package com.example.gerador_boleto.controller;
 
+import static com.example.gerador_boleto.BankSlipTestFactory.provideExpiredValidBankSlip;
 import static com.example.gerador_boleto.BankSlipTestFactory.provideMininumValidBankSlip;
 import static com.example.gerador_boleto.BankSlipTestFactory.provideValidBankSlipRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.client.RestTestClient;
 import com.example.gerador_boleto.dto.BankSlipRequest;
 import com.example.gerador_boleto.model.BankSlip;
 import com.example.gerador_boleto.repository.BankSlipRepository;
+import com.example.gerador_boleto.service.FineService;
 
 @SpringBootTest
 @AutoConfigureRestTestClient
@@ -151,6 +154,25 @@ class TestBankSlipController {
         });
   }
 
+  @Test
+  void getBankSlipByIdShouldReturnBankSlip2() {
+    final var value = new BigDecimal("99000");
+    final var savedBankSlip = repository.save(provideExpiredValidBankSlip(value));
+    final var fine = FineService.calculateFine(value, savedBankSlip.getDueDate());
+
+    restTestClient.get()
+        .uri("/rest/bankslips/" + savedBankSlip.getId())
+        .exchange()
+        .expectStatus().isOk()
+        .expectBody(BankSlip.class)
+        .value(returnedBs -> {
+          System.out.println(returnedBs);
+
+          assertThat(returnedBs)
+              .usingRecursiveComparison()
+              .isEqualTo(savedBankSlip.setFine(fine));
+        });
+  }
   // Pagar um boleto
   // Cancelar um boleto
 
