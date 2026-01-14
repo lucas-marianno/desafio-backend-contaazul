@@ -1,6 +1,6 @@
 package com.example.gerador_boleto.model;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -43,10 +43,10 @@ public class BankSlip {
   LocalDate paymentDate;
 
   @Column(nullable = false)
-  BigInteger totalInCents;
+  BigDecimal totalInCents;
 
   @Column
-  BigInteger fine;
+  BigDecimal fine;
 
   @Column(nullable = false)
   String customer;
