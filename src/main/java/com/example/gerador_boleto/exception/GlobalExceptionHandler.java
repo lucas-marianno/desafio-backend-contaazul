@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import com.example.gerador_boleto.exception.exceptions.BankSlipNotFoundException;
 import com.example.gerador_boleto.exception.exceptions.InvalidBankslipException;
@@ -36,6 +37,11 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException.class)
   ProblemDetail handleMethodArgumentNotValid(final MethodArgumentNotValidException e) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, e.getFieldError().toString());
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  ProblemDetail handleMethodArgumentTypeMismatch(final MethodArgumentTypeMismatchException e) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   @ExceptionHandler(MissingServletRequestParameterException.class)

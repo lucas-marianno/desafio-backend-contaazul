@@ -125,40 +125,31 @@ class TestBankSlipController {
     final var bsA = new BankSlip(null, dueDate, totalInCents, customer + "_A", status);
     final var bsB = new BankSlip(null, dueDate, totalInCents, customer + "_B", status);
 
-    repository.save(bsA);
-    repository.save(bsB);
+    final var savedBsA = repository.save(bsA);
+    final var savedBsB = repository.save(bsB);
 
-    final var rBody = restTestClient.get()
+    restTestClient.get()
         .uri("/rest/bankslips")
         .exchange()
         .expectStatus().isOk()
-        .expectBody();
-
-    rBody.jsonPath("$").isArray()
-        .jsonPath("$.length()").isEqualTo(2);
-
-    rBody.jsonPath("$[0].total_in_cents").isEqualTo(totalInCents)
-        .jsonPath("$[0].due_date").isEqualTo(dueDate.toString())
-        .jsonPath("$[0].customer").isEqualTo(customer + "_A")
-        .jsonPath("$[0].status").isEqualTo(status.toString())
-        .jsonPath("$[0].id").value(id -> assertDoesNotThrow(() -> UUID.fromString(id.toString())));
-
-    rBody.jsonPath("$[1].total_in_cents").isEqualTo(totalInCents)
-        .jsonPath("$[1].due_date").isEqualTo(dueDate.toString())
-        .jsonPath("$[1].customer").isEqualTo(customer + "_B")
-        .jsonPath("$[1].status").isEqualTo(status.toString())
-        .jsonPath("$[1].id").value(id -> assertDoesNotThrow(() -> UUID.fromString(id.toString())));
-
-    final var uuidA = rBody.jsonPath("$[0].id");
-    final var uuidB = rBody.jsonPath("$[1].id");
-
-    System.out.println(uuidA);
-    System.out.println(uuidB);
-
-    assertThat(uuidA != uuidB).isTrue();
+        .expectBody(BankSlip[].class)
+        .value(bsList -> {
+          assertThat(bsList).hasSize(2);
+          assertThat(bsList[0]).usingRecursiveComparison().isEqualTo(savedBsA);
+          assertThat(bsList[1]).usingRecursiveComparison().isEqualTo(savedBsB);
+          assertThat(bsList[0].getId()).isNotEqualTo(bsList[1].getId());
+        });
   }
 
   // Ver detalhes de um boleto
+  @Test
+  void getBankSlipByIdShould400() {
+    restTestClient.get()
+        .uri("/rest/bankslips/" + "definitely-not-a-uuid")
+        .exchange()
+        .expectStatus().isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
   @Test
   void getBankSlipByIdShouldReturn404() {
     final var rndUuid = UUID.randomUUID();
