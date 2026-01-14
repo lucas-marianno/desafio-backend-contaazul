@@ -17,13 +17,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
+@Accessors(chain = true)
 @ToString
 @Table(name = "bank_slip")
 public class BankSlip {
@@ -35,8 +39,14 @@ public class BankSlip {
   @Column(nullable = false)
   LocalDate dueDate;
 
+  @Column
+  LocalDate paymentDate;
+
   @Column(nullable = false)
   BigInteger totalInCents;
+
+  @Column
+  BigInteger fine;
 
   @Column(nullable = false)
   String customer;

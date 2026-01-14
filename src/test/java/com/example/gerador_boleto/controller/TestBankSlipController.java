@@ -1,12 +1,11 @@
 package com.example.gerador_boleto.controller;
 
+import static com.example.gerador_boleto.BankSlipTestFactory.provideMininumValidBankSlip;
+import static com.example.gerador_boleto.BankSlipTestFactory.provideValidBankSlipRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import java.math.BigInteger;
-import java.time.LocalDate;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +47,7 @@ class TestBankSlipController {
   }
 
   @ParameterizedTest
-  @MethodSource("provideInvalidRequests")
+  @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideInvalidRequests")
   void postInvalidBankSlipShouldReturn422(final BankSlipRequest invalidRequest) {
     restTestClient.post()
         .uri("/rest/bankslips")
@@ -58,25 +57,9 @@ class TestBankSlipController {
         .isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
   }
 
-  static Stream<BankSlipRequest> provideInvalidRequests() {
-    final var totalInCents = new BigInteger("1234567890");
-    final var dueDate = LocalDate.of(2010, 1, 1);
-    final var customer = "My Company";
-
-    return Stream.of(
-        new BankSlipRequest(null, null, null),
-        new BankSlipRequest(dueDate, totalInCents, null),
-        new BankSlipRequest(dueDate, totalInCents, ""),
-        new BankSlipRequest(dueDate, null, customer),
-        new BankSlipRequest(null, totalInCents, customer));
-  }
-
   @Test
   void postBankSlipShouldReturnValidBankSlip() {
-    final var totalInCents = new BigInteger("1234567890");
-    final var dueDate = LocalDate.now().plusDays(1);
-    final var customer = "My Company";
-    final var bs = new BankSlipRequest(dueDate, totalInCents, customer);
+    final var bs = provideValidBankSlipRequest();
 
     final var expectedStatus = BankSlip.Status.PENDING;
 
@@ -86,9 +69,9 @@ class TestBankSlipController {
         .exchange()
         .expectStatus().isCreated() // 201
         .expectBody()
-        .jsonPath("$.total_in_cents").isEqualTo(totalInCents)
-        .jsonPath("$.due_date").isEqualTo(dueDate.toString())
-        .jsonPath("$.customer").isEqualTo(customer)
+        .jsonPath("$.total_in_cents").isEqualTo(bs.totalInCents())
+        .jsonPath("$.due_date").isEqualTo(bs.dueDate().toString())
+        .jsonPath("$.customer").isEqualTo(bs.customer())
         .jsonPath("$.status").isEqualTo(expectedStatus.toString())
         .jsonPath("$.id").value(id -> assertDoesNotThrow(() -> UUID.fromString(id.toString())));
 
@@ -97,9 +80,9 @@ class TestBankSlipController {
     assertThat(allSlips).hasSize(1);
 
     final var dbbs = allSlips.getFirst();
-    assertThat(dbbs.getTotalInCents()).isEqualTo(totalInCents);
-    assertThat(dbbs.getDueDate()).isEqualTo(dueDate);
-    assertThat(dbbs.getCustomer()).isEqualTo(customer);
+    assertThat(dbbs.getTotalInCents()).isEqualTo(bs.totalInCents());
+    assertThat(dbbs.getDueDate()).isEqualTo(bs.dueDate());
+    assertThat(dbbs.getCustomer()).isEqualTo(bs.customer());
     assertThat(dbbs.getStatus()).isEqualTo(expectedStatus);
     assertThat(dbbs.getId()).isInstanceOf(UUID.class).isNotNull();
   }
@@ -117,13 +100,8 @@ class TestBankSlipController {
 
   @Test
   void getBankSlipShouldReturnList() {
-    final var totalInCents = new BigInteger("1234567890");
-    final var dueDate = LocalDate.now().plusDays(1);
-    final var customer = "My Company";
-    final var status = BankSlip.Status.PENDING;
-
-    final var bsA = new BankSlip(null, dueDate, totalInCents, customer + "_A", status);
-    final var bsB = new BankSlip(null, dueDate, totalInCents, customer + "_B", status);
+    final var bsA = provideMininumValidBankSlip().setCustomer("My Company A");
+    final var bsB = provideMininumValidBankSlip().setCustomer("My Company B");
 
     final var savedBsA = repository.save(bsA);
     final var savedBsB = repository.save(bsB);
@@ -161,13 +139,7 @@ class TestBankSlipController {
 
   @Test
   void getBankSlipByIdShouldReturnBankSlip() {
-    final var totalInCents = new BigInteger("1234567890");
-    final var dueDate = LocalDate.now().plusDays(1);
-    final var customer = "My Company";
-    final var status = BankSlip.Status.PENDING;
-    final var bs = new BankSlip(null, dueDate, totalInCents, customer + "_A", status);
-
-    final var savedBankSlip = repository.save(bs);
+    final var savedBankSlip = repository.save(provideMininumValidBankSlip());
 
     restTestClient.get()
         .uri("/rest/bankslips/" + savedBankSlip.getId())
