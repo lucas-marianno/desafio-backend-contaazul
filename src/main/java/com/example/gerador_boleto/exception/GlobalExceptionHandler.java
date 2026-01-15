@@ -29,8 +29,13 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(BankSlipNotFoundException.class)
-  ProblemDetail handleBankSlipNotFound(final BankSlipNotFoundException e){
+  ProblemDetail handleBankSlipNotFound(final BankSlipNotFoundException e) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+  }
+
+  @ExceptionHandler(IllegalStateException.class)
+  ProblemDetail handleIllegalState(final IllegalStateException e) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
   }
 
   // spring exceptions

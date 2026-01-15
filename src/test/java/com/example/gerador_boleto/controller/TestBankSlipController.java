@@ -213,7 +213,24 @@ class TestBankSlipController {
         .contentType(MediaType.APPLICATION_JSON)
         .body(body)
         .exchange()
-        .expectStatus().is4xxClientError();
+        .expectStatus().isNotFound();
+  }
+
+  @ParameterizedTest
+  @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideValidBankSlipsWithStatusNotPending")
+  void payBankSlipWithStatusNotPendingShouldReturn400(BankSlip bankSlip) {
+    final var savedBankSlipA = repository.save(bankSlip);
+
+    final String id = savedBankSlipA.getId().toString();
+    final String uri = "/rest/bankslips/%s/payments".formatted(id);
+    final String body = BankSlipTestFactory.provideValidPayRequestJsonBody();
+
+    restTestClient.post()
+        .uri(uri)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body)
+        .exchange()
+        .expectStatus().isBadRequest();
   }
 
   @Test
@@ -261,6 +278,20 @@ class TestBankSlipController {
         .uri(uri)
         .exchange()
         .expectStatus().isNotFound();
+  }
+
+  @ParameterizedTest
+  @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideValidBankSlipsWithStatusNotPending")
+  void cancelBankSlipWithStatusNotPendingShouldReturn400(BankSlip bankSlip) {
+    final var savedBankSlipA = repository.save(bankSlip);
+
+    final String id = savedBankSlipA.getId().toString();
+    final String uri = "/rest/bankslips/" + id;
+
+    restTestClient.delete()
+        .uri(uri)
+        .exchange()
+        .expectStatus().isBadRequest();
   }
 
   @Test

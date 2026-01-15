@@ -74,4 +74,10 @@ public class BankSlipTestFactory {
         "{}",
         "");
   }
+
+  static public Stream<BankSlip> provideValidBankSlipsWithStatusNotPending() {
+    return Stream.of(
+        provideMininumValidBankSlip().setStatus(BankSlip.Status.CANCELED),
+        provideMininumValidBankSlip().setStatus(BankSlip.Status.PAID));
+  }
 }
