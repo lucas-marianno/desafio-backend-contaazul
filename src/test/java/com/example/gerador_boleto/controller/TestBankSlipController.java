@@ -17,8 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+import com.example.gerador_boleto.BankSlipTestFactory;
 import com.example.gerador_boleto.dto.BankSlipRequest;
 import com.example.gerador_boleto.model.BankSlip;
 import com.example.gerador_boleto.repository.BankSlipRepository;
@@ -173,7 +175,60 @@ class TestBankSlipController {
               .isEqualTo(savedBankSlip.setFine(fine));
         });
   }
+
   // Pagar um boleto
+
+  @ParameterizedTest
+  @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideInvalidPayRequestJsonBody")
+  void payBankSlipWithInvalidBodyShouldReturn4xx(String jsonBody) {
+    final String id = UUID.randomUUID().toString();
+    final String uri = "/rest/bankslips/%s/payments".formatted(id);
+    restTestClient.post()
+        .uri(uri)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(jsonBody)
+        .exchange()
+        .expectStatus().is4xxClientError();
+  }
+
+  @Test
+  void payBankSlipWithInvalidIdShouldReturn400() {
+    final String id = "invalid-uuid";
+    restTestClient.post()
+        .uri("/rest/bankslips/%s/payments".formatted(id))
+        .exchange()
+        .expectStatus().isBadRequest();
+  }
+
+  @Test
+  void payBankSlipWithRandomIdShouldReturn404() {
+    final String id = UUID.randomUUID().toString();
+    final String uri = "/rest/bankslips/%s/payments".formatted(id);
+    final String body = BankSlipTestFactory.provideValidPayRequestJsonBody();
+
+    restTestClient.post()
+        .uri(uri)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body)
+        .exchange()
+        .expectStatus().is4xxClientError();
+  }
+
+  @Test
+  void payBankSlipShouldReturn204() {
+    final var savedBankSlip = repository.save(provideMininumValidBankSlip());
+
+    final String id = savedBankSlip.getId().toString();
+    final String uri = "/rest/bankslips/%s/payments".formatted(id);
+    final String body = BankSlipTestFactory.provideValidPayRequestJsonBody();
+
+    restTestClient.post()
+        .uri(uri)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body)
+        .exchange()
+        .expectStatus().isNoContent();
+  }
   // Cancelar um boleto
 
 }

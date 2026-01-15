@@ -1,5 +1,6 @@
 package com.example.gerador_boleto.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,17 +34,28 @@ public class BankSlipService {
 
   public BankSlip findById(UUID id) {
     final var found = repository.findById(id);
-    if (found.isPresent()) {
-      final var bs = found.get();
-      final var fine = FineService.calculateFine(
-          bs.getTotalInCents(),
-          bs.getDueDate());
-
-      return fine == null ? bs : bs.setFine(fine);
-    } else {
+    if (!found.isPresent()) {
       throw new BankSlipNotFoundException(
-          "Bankslip not found with the specified id: "
-              + id.toString());
+          "Bankslip not found with the specified id");
     }
+
+    final var bs = found.get();
+
+    if (bs.getStatus() != BankSlip.Status.PENDING) return bs;
+
+    final var fine = FineService.calculateFine(
+        bs.getTotalInCents(),
+        bs.getDueDate());
+
+    return fine == null ? bs : bs.setFine(fine);
+  }
+
+  public void payBankSlip(UUID id, LocalDate paymentDate) {
+    final var bankSlip = findById(id);
+
+    if (bankSlip.getStatus() != BankSlip.Status.PENDING) return;
+
+    bankSlip.setPaymentDate(paymentDate);
+    repository.save(bankSlip);
   }
 }

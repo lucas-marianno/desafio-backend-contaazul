@@ -32,6 +32,7 @@ public class BankSlipTestFactory {
   static public BankSlip provideExpiredValidBankSlip() {
     return provideExpiredValidBankSlip(defaultTotalInCents);
   }
+
   static public BankSlip provideExpiredValidBankSlip(BigDecimal valueInCents) {
     final var pastDueDate = LocalDate.now().minusYears(5);
     return BankSlip.builder()
@@ -41,6 +42,7 @@ public class BankSlipTestFactory {
         .status(defaultStatus)
         .build();
   }
+
   static public Stream<BankSlipRequest> provideInvalidRequests() {
     return Stream.of(
         new BankSlipRequest(null, null, null),
@@ -50,4 +52,26 @@ public class BankSlipTestFactory {
         new BankSlipRequest(null, defaultTotalInCents, defaultCustomer));
   }
 
+  static public String provideValidPayRequestJsonBody() {
+    return "{\"payment_date\":\"2025-09-30\"}";
+  }
+
+  static public Stream<String> provideInvalidPayRequestJsonBody() {
+    return Stream.of(
+        "{\"payment_date\": \"\"}",
+        "{\"payment_date\": \"abc\"}",
+        "{\"payment_date\": 12345}",
+        "{\"payment_date\": \"12345\"}",
+        "{\"payment_date\": \"205-09-16\"}",
+        "{\"payment_date\": \"2025-19-06\"}",
+        "{\"payment_date\": \"2025/09/26\"}",
+        "{\"payment_date\": \"19-02-2025\"}",
+        "{\"payment_date\": \"2025-02-31\"}",
+        "{\"payment-date\": \"2025-12-30\"}",
+        "{\"paymentDate\": \"2025-12-30\"}",
+        "{\"abc\": \"2025-12-30\"}",
+        "{\"\": \"2025-12-30\"}",
+        "{}",
+        "");
+  }
 }

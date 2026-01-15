@@ -1,0 +1,22 @@
+meta {
+  name: Pagar boleto (fail)
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8080/rest/bankslips/8376bdc0-8ac4-4f4f-bada-681764d0552b/payments
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "payment_date":12345 
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
