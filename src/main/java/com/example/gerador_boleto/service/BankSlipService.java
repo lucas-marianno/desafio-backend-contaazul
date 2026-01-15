@@ -55,7 +55,19 @@ public class BankSlipService {
 
     if (bankSlip.getStatus() != BankSlip.Status.PENDING) return;
 
-    bankSlip.setPaymentDate(paymentDate);
+    bankSlip
+        .setPaymentDate(paymentDate)
+        .setStatus(BankSlip.Status.PAID);
+    repository.save(bankSlip);
+  }
+
+  public void cancelBankSlip(UUID id) {
+    final var bankSlip = findById(id);
+
+    if (bankSlip.getStatus() == BankSlip.Status.CANCELED)
+      return;
+
+    bankSlip.setStatus(BankSlip.Status.CANCELED);
     repository.save(bankSlip);
   }
 }

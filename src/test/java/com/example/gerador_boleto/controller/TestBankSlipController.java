@@ -168,8 +168,6 @@ class TestBankSlipController {
         .expectStatus().isOk()
         .expectBody(BankSlip.class)
         .value(returnedBs -> {
-          System.out.println(returnedBs);
-
           assertThat(returnedBs)
               .usingRecursiveComparison()
               .isEqualTo(savedBankSlip.setFine(fine));
@@ -215,7 +213,7 @@ class TestBankSlipController {
   }
 
   @Test
-  void payBankSlipShouldReturn204() {
+  void payBankSlipShouldReturn204AndUpdateDataBase() {
     final var savedBankSlip = repository.save(provideMininumValidBankSlip());
 
     final String id = savedBankSlip.getId().toString();
@@ -228,7 +226,56 @@ class TestBankSlipController {
         .body(body)
         .exchange()
         .expectStatus().isNoContent();
+
+    final var found = repository.findById(savedBankSlip.getId());
+
+    assertThat(found).isPresent();
+    final var foundBs = found.get();
+    assertThat(foundBs.getStatus()).isEqualTo(BankSlip.Status.PAID);
+    assertThat(foundBs.getPaymentDate()).isNotNull();
   }
   // Cancelar um boleto
+
+  @Test
+  void cancelBankSlipWithInvalidIdShouldReturn400() {
+    final String id = "invalid-uuid";
+    final String uri = "/rest/bankslips/" + id;
+
+    restTestClient.delete()
+        .uri(uri)
+        .exchange()
+        .expectStatus().isBadRequest();
+
+  }
+
+  @Test
+  void cancelBankSlipWithRandomIdShouldReturn404() {
+    final String id = UUID.randomUUID().toString();
+    final String uri = "/rest/bankslips/" + id;
+
+    restTestClient.delete()
+        .uri(uri)
+        .exchange()
+        .expectStatus().isNotFound();
+  }
+
+  @Test
+  void cancelBankSlipWithValidIdShouldReturn204AndUpdateDataBase() {
+    final var bs = repository.save(provideMininumValidBankSlip());
+
+    final String id = bs.getId().toString();
+    final String uri = "/rest/bankslips/" + id;
+
+    restTestClient.delete()
+        .uri(uri)
+        .exchange()
+        .expectStatus().isNoContent();
+
+    final var found = repository.findById(bs.getId());
+
+    assertThat(found).isPresent();
+    assertThat(found.get().getStatus())
+        .isEqualTo(BankSlip.Status.CANCELED);
+  }
 
 }
