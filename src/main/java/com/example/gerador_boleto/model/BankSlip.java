@@ -45,9 +45,6 @@ public class BankSlip {
   @Column(nullable = false)
   BigDecimal totalInCents;
 
-  @Column
-  BigDecimal fine;
-
   @Column(nullable = false)
   String customer;
 

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.gerador_boleto.dto.BankSlipRequest;
 import com.example.gerador_boleto.dto.PaymentRequest;
-import com.example.gerador_boleto.model.BankSlip;
+import com.example.gerador_boleto.dto.BankSlipResponse;
 import com.example.gerador_boleto.service.BankSlipService;
 
 import jakarta.validation.Valid;
@@ -29,7 +29,7 @@ public class BankSlipController {
   final BankSlipService service;
 
   @PostMapping("/bankslips")
-  ResponseEntity<BankSlip> createBankSlip(
+  ResponseEntity<BankSlipResponse> createBankSlip(
       @RequestBody @Valid final BankSlipRequest request) {
     return ResponseEntity
         .status(HttpStatus.CREATED)
@@ -37,13 +37,13 @@ public class BankSlipController {
   }
 
   @GetMapping("/bankslips")
-  ResponseEntity<List<BankSlip>> getAllBankSlip() {
+  ResponseEntity<List<BankSlipResponse>> getAllBankSlip() {
     return ResponseEntity.ok(service.findAll());
   }
 
   @GetMapping("/bankslips/{id}")
-  ResponseEntity<BankSlip> getById(@PathVariable UUID id) {
-    return ResponseEntity.ok(service.findById(id));
+  ResponseEntity<BankSlipResponse> getById(@PathVariable UUID id) {
+    return ResponseEntity.ok(service.getDetails(id));
   }
 
   @PostMapping("/bankslips/{id}/payments")

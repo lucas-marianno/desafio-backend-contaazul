@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
 import com.example.gerador_boleto.BankSlipTestFactory;
+import com.example.gerador_boleto.dto.BankSlipResponse;
 import com.example.gerador_boleto.dto.BankSlipRequest;
 import com.example.gerador_boleto.model.BankSlip;
 import com.example.gerador_boleto.repository.BankSlipRepository;
@@ -170,7 +171,10 @@ class TestBankSlipController {
         .value(returnedBs -> {
           assertThat(returnedBs)
               .usingRecursiveComparison()
-              .isEqualTo(savedBankSlip.setFine(fine));
+              .isEqualTo(
+                  BankSlipResponse.fromBankSlip(
+                      savedBankSlip,
+                      fine));
         });
   }
 
