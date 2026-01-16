@@ -55,4 +55,15 @@ public class BankSlip {
   public enum Status {
     PENDING, PAID, CANCELED
   }
+
+  public BankSlip setStatus(Status status) {
+    if (this.status != Status.PENDING) {
+      throw new IllegalStateException(
+          "Bank slips status '" + this.status +
+              "' is final and cannot be changed to '" + status + "'");
+    }
+
+    this.status = status;
+    return this;
+  }
 }

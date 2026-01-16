@@ -29,7 +29,7 @@ public class FineService {
       fine = onePercent.multiply(valueInCents);
     }
 
-    // Observação 3: por se tratar de um valor já em centavos, não faria sentido
+    // Observação: por se tratar de um valor já em centavos, não faria sentido
     // retornar um valor com casas decimais. Assim sendo, embora não seja um
     // requisito do desafio, o valor será arredondado para remover decimais usando o
     // método `RoundingMode.HALF_EVEN` (arredondamento bancário)

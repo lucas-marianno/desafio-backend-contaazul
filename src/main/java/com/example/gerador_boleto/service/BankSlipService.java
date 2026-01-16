@@ -63,20 +63,14 @@ public class BankSlipService {
   public void payBankSlip(UUID id, LocalDate paymentDate) {
     final var bankSlip = findById(id);
 
-    if (bankSlip.getStatus() != BankSlip.Status.PENDING)
-      throw new IllegalStateException("Only PENDING bank slips can be paid.");
-
     bankSlip
-        .setPaymentDate(paymentDate)
-        .setStatus(BankSlip.Status.PAID);
+        .setStatus(BankSlip.Status.PAID)
+        .setPaymentDate(paymentDate);
     repository.save(bankSlip);
   }
 
   public void cancelBankSlip(UUID id) {
     final var bankSlip = findById(id);
-
-    if (bankSlip.getStatus() != BankSlip.Status.PENDING)
-      throw new IllegalStateException("Only PENDING bank slips can be canceled.");
 
     bankSlip.setStatus(BankSlip.Status.CANCELED);
     repository.save(bankSlip);
