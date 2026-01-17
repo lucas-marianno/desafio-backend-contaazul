@@ -218,7 +218,7 @@ class TestBankSlipController {
 
   @ParameterizedTest
   @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideValidBankSlipsWithStatusNotPending")
-  void payBankSlipWithStatusNotPendingShouldReturn400(BankSlip bankSlip) {
+  void payBankSlipWithStatusNotPendingShouldReturn422(BankSlip bankSlip) {
     final var savedBankSlipA = repository.save(bankSlip);
 
     final String id = savedBankSlipA.getId().toString();
@@ -230,7 +230,7 @@ class TestBankSlipController {
         .contentType(MediaType.APPLICATION_JSON)
         .body(body)
         .exchange()
-        .expectStatus().isBadRequest();
+        .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
   }
 
   @Test
@@ -282,7 +282,7 @@ class TestBankSlipController {
 
   @ParameterizedTest
   @MethodSource("com.example.gerador_boleto.BankSlipTestFactory#provideValidBankSlipsWithStatusNotPending")
-  void cancelBankSlipWithStatusNotPendingShouldReturn400(BankSlip bankSlip) {
+  void cancelBankSlipWithStatusNotPendingShouldReturn422(BankSlip bankSlip) {
     final var savedBankSlipA = repository.save(bankSlip);
 
     final String id = savedBankSlipA.getId().toString();
@@ -291,7 +291,7 @@ class TestBankSlipController {
     restTestClient.delete()
         .uri(uri)
         .exchange()
-        .expectStatus().isBadRequest();
+        .expectStatus().isEqualTo(HttpStatus.UNPROCESSABLE_CONTENT);
   }
 
   @Test

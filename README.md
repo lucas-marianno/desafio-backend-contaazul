@@ -1,167 +1,221 @@
-# Desafio Desenvolvedor Backend - ContaAzul
-Documento original do desafio [aqui](https://drive.google.com/file/d/1DvjRBTvnHwlUOoNBwAsvoRF6aKqYm7pP/view).
+# Gerador de Boletos - API REST
 
-## Pré-requisitos
+Este projeto é a minha solução para o desafio de backend proposto pela empresa Conta Azul. 
 
-```
-● Java 8+
-● Utilizar ferramentas de build Maven ou Gradle
-● Seguir os padrões REST
-● Banco de dados H2
-● Escolha a stack de sua preferência: Spring Boot ou Wildfly Swarm
-● README.md bem descrito com instruções para rodar o projeto
-● Git
-```
+Desafio desponível [aqui](https://drive.google.com/file/d/1DvjRBTvnHwlUOoNBwAsvoRF6aKqYm7pP/view). (Também compilei as instruções para o arquivo `INSTRUCOES-DESAFIO.md` para facilitar referência no ambiente de desenvolvimento).
 
-## Avaliação
+## Tecnologias Utilizadas
+- Java 25
+- Maven: Ferramenta de build e gerenciador de dependencias.
+- Spring Boot 4.0.1: Framework que facilita a criação de applicações web e rest.
+- Spring Data JPA: Abstração para persistência de dados, permite a troca fácil de H2 para postgres por exemplo.
+- H2 Database: Banco de dados em memória, exigido pelos requisitos do desafio.
+- Flyway Migration: Facilita a migração de bancos.
+- Lombok: Redução de boilerplate através de anotações.
 
-O que vamos considerar na avaliação do desafio:
-Muito importante, nessa ordem:
-- Clean Code, SOLID, DRY
-- Implementar 100 % da especificação do desafio abaixo
-- Instruções de como rodar o projeto descrito no README.md
-Importante, nessa ordem:
-- Criação de testes automatizados (teste unitário e teste de integração)
-Dicas opcionais, se quiser colocar a cereja no bolo:
-- Uso de bibliotecas auxiliares, soluções inovadoras e ferramentas que auxiliem build, deploy
-etc, documentação da API.
+## Como Executar a Aplicação
+É possível executar o projeto de três modos:
 
-## Desafio
+### 1. Docker (Recomendado)
+Você precisará ter instalado `docker` e `docker-compose` em sua máquina.
 
-O objetivo do desafio é construir uma API REST para geração de boletos que será consumido por
-um módulo de um sistema de gestão financeira de microempresas.
-No final do desafio vamos ter os seguintes endpoints para:
-- Criar boleto
-- Listar boletos
-- Ver detalhes
-- Pagar um boleto
-- Cancelar um boleto
-Siga as especificações das páginas seguintes e boa sorte ;)
+- Baixe este repositório e execute na pasta raiz do projeto:
+  - `docker-compose up --build`
 
+### 2. Executável JAR (Releases)
+Você precisará ter instalado `JRE 25` em sua máquina.
 
-## Criar boleto
+- Acesse o release mais recente desta aplicação clicando [aqui](https://github.com/lucas-marianno/desafio-backend-contaazul/releases);
+- Baixe o arquivo `.jar` e salve na pasta de destino desejada;
+- Abra o terminal na raiz do projeto e execute:
+  `java -jar nome-do-arquivo-baixado.jar`
 
-**Endpoint:** ​ ​POST [http://localhost:8080/rest/bankslips](http://localhost:8080/rest/bankslips)
+### 3. Compilação via Código Fonte
+Você precisará ter instalado `JDK 25` em sua máquina. O Maven Wrapper já está incluso no projeto.
 
-Esse método deve receber um novo boleto e inseri-lo em um banco de dados para ser consumido
-pela própria API. Todos os campos são obrigatórios.
+- Baixe este repositório e execute na pasta raiz do projeto:
+  `./mvnw spring-boot:run`
 
-Request:
-```
+## Executar testes unitários e de integração
+Você precisará ter instalado `JDK 25` em sua máquina. O Maven Wrapper já está incluso no projeto.
+
+- Baixe este repositório e execute na pasta raiz do projeto:
+  `./mvnw test`
+
+Para executar e analizar os testes individualmente, abra o projeto na IDE ou editor de texto de sua preferência e execute como de costume
+
+# Documentação da API
+
+Após executar o projeto, a API estará disponível em http://localhost:8080/.
+
+## Criar Boleto
+Endpoint: `POST` http://localhost:8080/rest/bankslips
+
+Cria um novo boleto no sistema com status inicial PENDING.
+
+### Requisição
+
+- `due_date`: Data de vencimento (yyyy-MM-dd).
+- `total_in_cents`: Valor total em centavos (ex: 10000 para R$ 100,00).
+- `customer`: Nome do cliente.
+
+Exemplo de requisição:
+```json
 {
-​"due_date"​:​"2018-01-01"​,
-​"total_in_cents"​:​"100000"​,
-​"customer"​:​"Trillian Company"
+  "due_date":"2025-05-10",
+  "total_in_cents":"99000",
+  "customer":"Ford Prefect Company"
 }
 ```
-Retorno:
-```
+
+### Respostas
+
+- status: `201 - CREATED`
+Em caso de sucesso
+
+exemplo:
+```json
 {
-"id"​:​"84e8adbf-1a14-403b-ad73-d78ae19b59bf"​,
-​"due_date"​:​"2018-01-01"​,
-​"total_in_cents"​:​"100000"​,
-​"customer"​:​"Trillian Company"​,
-​"status"​:​"PENDING"
+  "id": "e24b19a6-4783-4c21-a07c-7b2f727a7908",
+  "due_date": "2018-05-10",
+  "total_in_cents": 99000,
+  "customer": "Ford Prefect Company",
+  "status": "PENDING"
 }
 ```
-- 201 : Bankslip created
-- 400 : Bankslip not provided in the request body
-- 422 : Invalid bankslip provided.The possible reasons are:
-  - A field of the provided bankslip was null or with invalid values
 
-|Campo | Tipo | Formato |
-| --- | --- | ---|
-|id | UUID | UUID|
-|due_date| date| yyyy-MM-dd|
-|total_in_cents | BigDecimal | valor em centavos|
-|customer |string | |
-|status | string | PENDING, PAID, CANCELED|
+- status: `400 - BAD_REQUEST`
+Em caso de corpo vazio
 
-## Lista de boletos
+- status: `422 - UNPROCESSABLE_CONTENT`
+Em caso de o corpo `json` estar mal formado (items faltando, mal escritos ou em formato inválido)
 
-**Endpoint:** ​GET ​http://localhost:8080/rest/bankslips/
+## Listar Boletos
+Endpoint: `GET` http://localhost:8080/rest/bankslips
 
-Esse método da API deve retornar uma lista de boletos em formato JSON.
+Retorna uma lista simplificada de todos os boletos armazenados.
 
-Ex:
-```
+### Requisição
+
+Parâmetros: Nenhum.
+
+### Respostas
+- status: `200 - OK`
+
+Exemplo de resposta:
+```json
 [
-{
-​"id"​:​"84e8adbf-1a14-403b-ad73-d78ae19b59bf"​,
-​"due_date"​:​"2018-01-01"​,
-​"total_in_cents"​:​"100000"​,
-​"customer"​:​"Ford Prefect Company"​,
-​"status"​:​"PENDING"
-},
-{
-​"id"​:​"c2dbd236-3fa5-4ccc-9c12-bd0ae1d6dd89"​,
-​"due_date"​:​"2018-02-01"​,
-​"total_in_cents"​:​"200000"​,
-​"customer"​:​"Zaphod Company"​,
-​"status"​:​"PAID"
-}
+  {
+    "id": "b6dd5324-c2ec-4fcc-bbf3-87ef0ed36b54",
+    "due_date": "2018-05-10",
+    "total_in_cents": 99000,
+    "customer": "Ford Prefect Company",
+    "status": "PENDING"
+  },
+  {
+    "id": "575888f2-fc1f-44ea-b16a-8e459f9eb8e4",
+    "due_date": "2018-05-10",
+    "total_in_cents": 99000,
+    "customer": "Ford Prefect Company",
+    "status": "PENDING"
+  },
+  {
+    "id": "f38e2fc4-8778-400a-8580-e38e91e370cc",
+    "due_date": "2018-05-10",
+    "total_in_cents": 99000,
+    "customer": "Ford Prefect Company",
+    "status": "PENDING"
+  }
 ]
 ```
 
-## Ver detalhes de um boleto
+## Ver Detalhes
+Endpoint: `GET` http://localhost:8080/rest/bankslips/{id}
 
-**Endpoint:** ​GET [http://localhost:8080/rest/bankslips/{id}](http://localhost:8080/rest/bankslips/{id})
+Retorna todos os dados de um boleto específico. Se o boleto estiver atrasado, o campo fine (multa) será calculado e exibido.
 
-Esse método da API deve retornar um boleto filtrado pelo id, caso o boleto estiver atrasado deve
-ser calculado o valor da multa.
+**Regra de Multa:**
+- Até 10 dias de atraso: 0,5% de juros simples por dia.
+- Acima de 10 dias de atraso: 1% de juros simples por dia.
 
-Regra para o cálculo da multa aplicada por dia para os ​boletos atrasados:
+#### Requisição:
+- Variável: `id` (`UUID` do boleto).
+- Corpo: vazio.
 
-- Até 10 dias: Multa de 0,5% (Juros Simples)
-- Acima de 10 dias: Multa de 1% (Juros Simples)
-
-Retorno:
-```
+#### Resposta:
+- status: `200 - OK`
+  - exemplo de resposta:
+```json
 {
-​"id"​:​"c2dbd236-3fa5-4ccc-9c12-bd0ae1d6dd89"​,
-​"due_date"​:​"2018-05-10"​,
-​"payment_date"​:​"2018-05-13"​,
-​"total_in_cents"​:​"99000"​,
-​"customer"​:​"Ford Prefect Company"​,
-​"fine"​:​"1485"​,
-​"status"​:​"PAID"
+  "id": "e24b19a6-4783-4c21-a07c-7b2f727a7908",
+  "due_date": "2018-05-10",
+  "total_in_cents": 99000,
+  "customer": "Ford Prefect Company",
+  "status": "PENDING",
+  "fine": 990
 }
 ```
+- status: `400 - BAD_REQUEST`
+Em caso de `UUID` inválida ou mal construída.
 
-**Mensagens de resposta**
-- 200 : Ok
-- 404 : Bankslip not found with the specified id
+- status: `404 - NOT_FOUND`
+Em caso de não encontrar nenhum boleto com id correspondente à `UUID` fornecida.
 
-## Pagar um boleto
+## Pagar um Boleto
 
-Esse método da API deve alterar o status do boleto para PAID.
+Endpoint: `POST` http://localhost:8080/rest/bankslips/{id}/payments
 
-**Endpoint** ​: POST [http://localhost:8080/rest/bankslips/{id}/payments](http://localhost:8080/rest/bankslips/{id}/payments)
+Altera o status de um boleto de `PENDING` para `PAID`.
 
-Request:
-```
+#### Requisição
+- Variável: `id` (`UUID` do boleto).
+- Corpo:
+  - `payment_date`: Data em que o pagamento foi realizado (yyyy-MM-dd).
+
+Exemplo de requisição
+```json
 {
-​"payment_date"​:​"2018-06-30"
+  "payment_date":"2025-12-30" 
 }
 ```
+#### Resposta
+- status: `204 - NO_CONTENT` em caso de sucesso.
+- status: `400 - BAD_REQUEST` Em caso de:
+  - Corpo vazio;
+  - `UUID` inválida ou mal construída;
+  - Data no corpo estar no formato errado;
+- status: `404 - NOT_FOUND` Em caso de:
+  - Não encontrar nenhum boleto com id correspondente à `UUID` fornecida.
+- status: `422 - UNPROCESSABLE_CONTENT` Em caso de:
+  - Corpo `json` estar mal formado (items faltando, mal escritos)
+  - Boleto estar em status diferente de `PENDING`
 
-Campo Tipo Formato
-payment_date Date `yyyy-MM-dd`
+## Cancelar um Boleto
+Endpoint: `DELETE` http://localhost:8080/rest/bankslips/{id}
 
-|Campo| Tipo| Formato|
-|---|---|---|
-|payment_date| Date| yyyy-MM-dd|
+Altera o status do boleto para CANCELED.
+Observação: Apenas boletos com status PENDING podem ser cancelados.
 
-**Mensagens de resposta**
-- 204 : No content
-- 404 : Bankslip not found with the specified id
+#### Requisição
+- Variável: `id` (`UUID` do boleto).
+- Corpo: Vazio.
 
-## Cancelar um boleto
+#### Resposta
+- status: `204 - NO_CONTENT` em caso de sucesso.
+- status: `400 - BAD_REQUEST` Em caso de:
+  - `UUID` inválida ou mal construída;
+- status: `404 - NOT_FOUND` Em caso de:
+  - Não encontrar nenhum boleto com id correspondente à `UUID` fornecida.
+- status: `422 - UNPROCESSABLE_CONTENT` Em caso de:
+  - Boleto estar em status diferente de `PENDING`
 
-Esse método da API deve alterar o status do boleto para ​CANCELED​.
+# Observações pessoais
 
-**Endpoint:** ​ ​DELETE [http://localhost:8080/rest/bankslips/{id}](http://localhost:8080/rest/bankslips/{id})
+Foi um projeto interessante, pois apesar de simples o executei com a maior atenção possível focando em seguir os princípios de código limpo e os paragigmas OOP. Além disso, foi uma excelente oportunidade de por em prática a abordagem TDD.
 
-**Mensagens de resposta**
-- 204 : Bankslip canceled
-- 404 : Bankslip not found with the specified id
+Dito isso, acredito que o desafio precisa de algumas revisões. Como por exemplo:
+ - No método de criação de boletos, a documentação do desafio diz que o campo `total_in_cents` deve ser um `BigDecimal`, o que é de fato no mínimo curioso visto que o valor já está em centavos. Acredito que o correto seria utilizar `BigInteger`
+ - No método de detalhes do boleto, o desafio não estabelece o tipo que deve ser retornado ao usuário. Assim sendo, para fins de coerência, utilizei a mesma lógica de `total_in_cents` e o valor retornado da multa está em centávos. 
+ - Ainda no mesmo método, não é informado se devemos arredondar o valor, ou simplesmente devolver frações de centavos. Portanto, tomei a liberdade de incluir o arrendondamento `RoundingMode.HALF_EVEN` que é o padrão bancário pois diminui erros cumulativos.
+
+Para concluir, embora não fosse solicitado pelo desafio, como fiz uso da versão LTS do Java mais recente (jdk-25) achei melhor realizar a portagem para `docker` para facilitar a distribuição e avaliação sem que fosse necessário que o avaliador tivesse que instalar mais uma versão java em sua máquina.
